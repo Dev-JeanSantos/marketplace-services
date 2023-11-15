@@ -22,7 +22,7 @@ import org.springframework.test.web.servlet.result.MockMvcResultMatchers
 @AutoConfigureMockMvc
 @ContextConfiguration()
 @ExtendWith(SpringExtension::class)
-public class CategoryControllerTest{
+class CategoryControllerTest{
 
     @Autowired
     private  lateinit var mockMvc: MockMvc
@@ -35,11 +35,10 @@ public class CategoryControllerTest{
     }
 
     @Test
-    @DisplayName("should create a category and return 201 status")
-    fun `should create a category and return 201 status`(){
+    @DisplayName("should return success when creating a category with all valid fields")
+    fun `shouldReturnSuccess_WhenCreatingACategory_WithAllValidFields`(){
         val categoryDTO = BuildCategoryDTO.buildCategoryDTOSucesss()
         val asString = objectMapper.writeValueAsString(categoryDTO)
-        println(asString)
 
         mockMvc.perform(
             MockMvcRequestBuilders.post(URL)
@@ -49,6 +48,42 @@ public class CategoryControllerTest{
             .andExpect(MockMvcResultMatchers.status().isCreated)
             .andExpect(MockMvcResultMatchers.jsonPath("$.id").value(1L))
             .andExpect(MockMvcResultMatchers.jsonPath("$.name").value("CARNES"))
+            .andDo(MockMvcResultHandlers.print())
+    }
+
+    @Test
+    @DisplayName("should return an exception when creating a category by passing an empty name")
+    fun `shouldReturnAnException_WhenCreatingACategory_ByPassingAnEmptyName`(){
+        val categoryDTO = BuildCategoryDTO.buildCategoryDTOFailed()
+        val asString = objectMapper.writeValueAsString(categoryDTO)
+
+        mockMvc.perform(
+            MockMvcRequestBuilders.post(URL)
+                .contentType(APPLICATION_JSON)
+                .content(asString)
+        )
+            .andExpect(MockMvcResultMatchers.status().isBadRequest)
+            .andExpect(MockMvcResultMatchers.jsonPath("$.timestamp").exists())
+            .andExpect(MockMvcResultMatchers.jsonPath("$.status").value(400))
+            .andExpect(MockMvcResultMatchers.jsonPath("$.error").value("INTERNAL_SERVER_ERROR"))
+            .andDo(MockMvcResultHandlers.print())
+    }
+
+    @Test
+    @DisplayName("should return an exception when creating a category by passing an less than 3 characters by name")
+    fun `shouldReturnAnException_WhenCreatingACategory_ByPassingAnlessThan3CharactersByEmptyName`(){
+        val categoryDTO = BuildCategoryDTO.buildCategoryDTOFailed()
+        val asString = objectMapper.writeValueAsString(categoryDTO)
+
+        mockMvc.perform(
+            MockMvcRequestBuilders.post(URL)
+                .contentType(APPLICATION_JSON)
+                .content(asString)
+        )
+            .andExpect(MockMvcResultMatchers.status().isBadRequest)
+            .andExpect(MockMvcResultMatchers.jsonPath("$.timestamp").exists())
+            .andExpect(MockMvcResultMatchers.jsonPath("$.status").value(400))
+            .andExpect(MockMvcResultMatchers.jsonPath("$.error").value("INTERNAL_SERVER_ERROR"))
             .andDo(MockMvcResultHandlers.print())
     }
 
